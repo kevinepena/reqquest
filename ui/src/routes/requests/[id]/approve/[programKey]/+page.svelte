@@ -16,7 +16,10 @@
   import { CommentCard, enumPromptVisibility, enumRequirementStatus, enumRequirementType, InfoCard } from '$lib'
   import type { PageData } from './$types'
   import { uiRegistry } from '../../../../../local'
+  import { isInlineReviewerEditPrompt } from '../../../../../internal'
   import ApproveLayout from '../ApproveLayout.svelte'
+  import { Loading } from "carbon-components-svelte";
+  import { load } from '../+page';
 
   /**
    * This page is the primary reviewer screen, it will show all the prompt
@@ -121,6 +124,7 @@
     ...nonBlockingWorkflowStages
   ].filter(s => (!!s.requirements[0]?.workflowStage) || (s.requirements.length > 0 && s.requirements.some(r => r.prompts.length > 0)))
   $: applicationStatusInfo = getApplicationStatusInfo(application.status, appRequest.phase, appRequest.closedAt)
+  $: loading = false
 
   type PromptExtraData = Awaited<ReturnType<typeof api.getPromptData>>
   type Prompt = PageData['appRequest']['applications'][0]['requirements'][0]['prompts'][0]
@@ -141,6 +145,11 @@
       }
     }
   }
+  function hideEditModalPromptOnLoading() { // keep the dialog in the DOM so onSave fires, but remove from view
+    if (!showPromptDialog) return
+    const editModalDialog = document.querySelector('.tcbs-dialog')
+    editModalDialog?.classList.add('invisible')   
+  }
 
   function closePromptDialog () {
     fetchingEditPrompt = false
@@ -149,7 +158,9 @@
   }
 
   function onPromptSubmit (id: string) {
-    return async (data: any) => {
+    return async (data: any) => {   
+      loading = true      
+      hideEditModalPromptOnLoading()  
       const response = await api.updatePrompt(id, data, false)
       return response
     }
@@ -162,9 +173,10 @@
     }
   }
 
-  async function onPromptSaved (data: any) {
-    await invalidateAll()
-    closePromptDialog()
+  async function onPromptSaved (data: any) {        
+    await invalidateAll()     
+    closePromptDialog ()
+    loading = false
   }
 
   let appAction: '' | 'advanceWorkflow' | 'reverseWorkflow' = ''
@@ -177,7 +189,10 @@
   }
 
   async function advanceWorkflow () {
-    const response = await api.advanceWorkflow(application.id)
+    loading = true
+    const response = await api.advanceWorkflow(application.id) 
+    await invalidateAll()    
+    loading = false   
     if (!response.success) {
       toasts.add({
         type: 'error',
@@ -189,12 +204,14 @@
         type: 'success',
         message: 'Application advanced.'
       })
-    }
-    await invalidateAll()
+    }    
   }
 
   async function reverseWorkflow () {
-    const response = await api.reverseWorkflow(application.id)
+    loading = true
+    const response = await api.reverseWorkflow(application.id)     
+    await invalidateAll()    
+    loading = false   
     if (!response.success) {
       toasts.add({
         type: 'error',
@@ -207,9 +224,11 @@
         message: 'Application workflow reversed.'
       })
     }
-    await invalidateAll()
   }
 </script>
+{#if loading}  
+    <Loading />    
+{/if}
 
 <ApproveLayout {basicRequestData}>
   <svelte:fragment slot="sidebar">
@@ -253,7 +272,7 @@
               {@const def = uiRegistry.getPrompt(prompt.key)}
               {@const isReviewerQuestion = reviewerRequirementTypes.has(requirement.type) && !def?.automation}
               {@const isAutomation = !!def?.automation}
-              {@const editMode = def != null && isReviewerQuestion && prompt.actions.update && def.formMode !== 'full' && !(prompt.invalidated && prompt.preloadData)}
+              {@const editMode = isInlineReviewerEditPrompt(def, requirement, prompt)}
               {@const small = editMode && def.formMode !== 'full' ? def.formMode !== 'large' : def!.displayMode !== 'large'}
               {@const large = editMode && def.formMode !== 'full' ? def.formMode === 'large' : def!.displayMode === 'large'}
               {@const dtid = `dt-title-${prompt.id}`}
@@ -332,6 +351,7 @@
     submit={onPromptSubmit(promptBeingEdited.id)}
     validate={onPromptValidate(promptBeingEdited.id)}
     on:saved={onPromptSaved}
+    disableSaveUntilChanged={true}
     centered
     preload={promptBeingEdited.preloadData}
     let:data
@@ -340,6 +360,7 @@
     <svelte:component this={def!.formComponent} appRequestId={appRequest.id} {data} appRequestData={promptBeingEdited.data} fetched={promptBeingEdited.fetchedData} configData={promptBeingEdited.configurationData} gatheredConfigData={promptBeingEdited.gatheredConfigData} />
   </PanelFormDialog>
 {/if}
+
 
 <PanelFormDialog
   title="Add Note"
