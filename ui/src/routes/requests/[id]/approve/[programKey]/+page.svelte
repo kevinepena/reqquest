@@ -357,6 +357,9 @@
     let:data
   >
     {@const def = uiRegistry.getPrompt(promptBeingEdited.key)}
+    <div class='font-medium text-center mt-2'>
+      <p class="text-xl font-medium ">{promptBeingEdited.title}</p>
+    </div>
     <svelte:component this={def!.formComponent} appRequestId={appRequest.id} {data} appRequestData={promptBeingEdited.data} fetched={promptBeingEdited.fetchedData} configData={promptBeingEdited.configurationData} gatheredConfigData={promptBeingEdited.gatheredConfigData} />
   </PanelFormDialog>
 {/if}
