@@ -7,14 +7,16 @@
   import type { LayoutData } from './$types.js'
   import { api, IntroPanel, applicantStatuses, REVIEWER_STATUS_CONFIG, longNumericTime } from '$internal'
   import { uiRegistry } from '../../../../local/index.js'
-  import { enumAppRequestPhase, phaseChangeMutations, type PhaseChangeMutations } from '$lib'
-  import { Loading } from "carbon-components-svelte";
-    import { load } from '../+layout.js';
+  import { enumApplicationStatus } from '$lib'
+  import { enumAppRequestPhase, phaseChangeMutations, type PhaseChangeMutations, enumRequirementType, enumRequirementStatus } from '$lib'
+  import { Loading } from "carbon-components-svelte"
+  import { enumApplicationPhase } from '$lib'
+  import { excludeAppsByIneligibiltyPhase } from '$internal'
 
   export let data: LayoutData
   $: ({ basicRequestData, requestId } = data)
   $: tabs = [
-    ...(basicRequestData.applications.map(a => ({
+    ...(excludeAppsByIneligibiltyPhase([basicRequestData], [enumApplicationPhase.PREQUAL, enumApplicationPhase.QUALIFICATION])[0].applications.map(a => ({
       label: a.navTitle,
       href: resolve(`/requests/${requestId}/approve/${a.programKey}`)
     }))),
