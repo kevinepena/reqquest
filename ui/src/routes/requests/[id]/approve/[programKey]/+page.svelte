@@ -190,7 +190,7 @@
 
   async function advanceWorkflow () {
     loading = true
-    const response = await api.advanceWorkflow(application.id) 
+    const response = await api.advanceWorkflow(application.id)     
     await invalidateAll()    
     loading = false   
     if (!response.success) {
