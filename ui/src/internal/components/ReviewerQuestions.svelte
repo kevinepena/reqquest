@@ -28,6 +28,7 @@
   let promptBeingEdited: Prompt | undefined = undefined
   let showPromptDialog = false
   let fetchingEditPrompt = false
+
   function editPrompt (prompt: Prompt, allowSaveWithoutChanges: boolean = false) {
     return async () => {
       if (fetchingEditPrompt) return
@@ -149,6 +150,7 @@
 {/each}
 
 {#if showPromptDialog && promptBeingEdited}
+{@const formMode = uiRegistry.getPrompt(promptBeingEdited.key)?.formMode === 'full' ? 'large' : undefined}
   <PanelFormDialog
     title={editingPromptWithData?.invalidated ? `Review correction "${editingPromptWithData?.title}"` : 'Edit Prompt'}
     bind:open={showPromptDialog}
@@ -157,8 +159,8 @@
     validate={onPromptValidate(editingPromptWithData)}
     on:saved={onPromptSaved}
     disableSaveUntilChanged={!editingPromptWithData?.allowSaveWithoutChanges} // allow saving without changes if prompt was previously invalidated ...accomodates reviewer saying no changes required on correction check
-    centered
-    size={uiRegistry.getPrompt(editingPromptWithData?.key)?.formMode === 'full' ? 'large' : undefined}
+    centered={!formMode}
+    size={formMode}
     preload={editingPromptWithData?.preloadData}
     let:data
   >
@@ -184,6 +186,9 @@
       />
     {:else if fetchingEditPrompt}
       {@const loader = uiRegistry.getPrompt(promptBeingEdited.key)?.loader}
+      <div class='font-medium text-center mt-2'>
+        <p class="text-xl font-medium ">{promptBeingEdited.title}</p>
+      </div>
       {#if loader}
         <DelayedSkeleton {loader} />
       {/if}
