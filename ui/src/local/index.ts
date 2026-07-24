@@ -163,6 +163,17 @@ import RCPreQualUserInfoPromptDisplay from './rc/PreQualUserInfoPromptDisplay.sv
 import OptOut from './rc/OptOut.svelte'
 import OptOutDisplay from './rc/OptOutDisplay.svelte'
 import RCIntroPanelDefaultSlot from './rc/IntroPanelDefaultSlot.svelte'
+import RCAuditSoftwareDevelopmentRegular from './rc/AuditSoftwareDevelopmentRegular.svelte'
+import RCAuditSoftwareDevelopmentRegularDisplay from './rc/AuditSoftwareDevelopmentRegularDisplay.svelte'
+import RCAuditSoftwareDevelopmentSubmitted from './rc/AuditSoftwareDevelopmentSubmitted.svelte'
+import RCAuditSoftwareDevelopmentSubmittedDisplay from './rc/AuditSoftwareDevelopmentSubmittedDisplay.svelte'
+import RCAuditSoftwareDevelopmentSubmitted2 from './rc/AuditSoftwareDevelopmentSubmitted2.svelte'
+import RCAuditSoftwareDevelopmentSubmittedDisplay2 from './rc/AuditSoftwareDevelopmentSubmittedDisplay2.svelte'
+import RCReviewerSoftwareDevelopmentSecondEyes from './rc/ReviewerSoftwareDevelopmentSecondEyes.svelte'
+import RCReviewerSoftwareDevelopmentSecondEyesDisplay from './rc/ReviewerSoftwareDevelopmentSecondEyesDisplay.svelte'
+import RCAuditSoftwareDevelopmentRegular2 from './rc/AuditSoftwareDevelopmentRegular2.svelte'
+import RCAuditSoftwareDevelopmentRegularDisplay2 from './rc/AuditSoftwareDevelopmentRegularDisplay2.svelte'
+
 import { api } from '$internal/api'
 import ApplicantPromptSkeleton from '$internal/components/ApplicantPromptSkeleton.svelte'
 import { GeneralTextSkeleton } from '@txstate-mws/carbon-svelte'
@@ -449,7 +460,12 @@ function configureDemoInstanceParams (): UIConfig {
         { key: 'organization_req' },
         { key: 'assess_organization_req' },
         { key: 'reccomendation_letter_req' },
-        { key: 'assess_reccomendation_letter_req' }
+        { key: 'assess_reccomendation_letter_req' },
+        { key: 'audit_software_development_non_blocking_show_submitted_req'},
+        { key: 'audit_software_development_non_blocking_show_submitted_req2'},
+        { key: 'audit_software_development_non_blocking_show_regular_req'},
+        { key: 'audit_software_development_non_blocking_show_regular_req2'},
+        { key: 'reviewer_software_development_second_eyes_req'}
       ],
       prompts: [{
         key: 'pre_qual_prompt',
@@ -604,6 +620,31 @@ function configureDemoInstanceParams (): UIConfig {
         key: 'project_management_opt_out_prompt',
         formComponent: OptOut,
         displayComponent: OptOutDisplay
+      },
+      {
+        key: 'audit_software_development_non_blocking_show_submitted_prompt',
+        formComponent: RCAuditSoftwareDevelopmentSubmitted,
+        displayComponent: RCAuditSoftwareDevelopmentSubmittedDisplay
+      },
+      {
+        key: 'audit_software_development_non_blocking_show_submitted_prompt2',
+        formComponent: RCAuditSoftwareDevelopmentSubmitted2,
+        displayComponent: RCAuditSoftwareDevelopmentSubmittedDisplay2
+      },
+      {
+        key: 'audit_software_development_non_blocking_show_regular_prompt',
+        formComponent: RCAuditSoftwareDevelopmentRegular,
+        displayComponent: RCAuditSoftwareDevelopmentRegularDisplay
+      },
+      {
+        key: 'audit_software_development_non_blocking_show_regular_prompt2',
+        formComponent: RCAuditSoftwareDevelopmentRegular2,
+        displayComponent: RCAuditSoftwareDevelopmentRegularDisplay2
+      },
+      {
+        key: 'reviewer_software_development_second_eyes_prompt',
+        formComponent: RCReviewerSoftwareDevelopmentSecondEyes,
+        displayComponent: RCReviewerSoftwareDevelopmentSecondEyesDisplay
       }
       ]
     }
