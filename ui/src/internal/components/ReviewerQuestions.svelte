@@ -5,7 +5,7 @@
   import Edit from 'carbon-icons-svelte/lib/Edit.svelte'
   import { enumRequirementStatus, enumRequirementType, PromptIndicators, translateMutations, type PhaseChangeMutations } from '$lib'
   import { isInlineReviewerEditPrompt, RenderDisplayComponent, applicantRequirementTypes, reviewerRequirementTypes, api, PromptSaveQueue, type BasicRequestData } from '$internal'
-  import { FormInlineNotification, Panel, PanelFormDialog } from '@txstate-mws/carbon-svelte'
+  import { confirmationStore, FormInlineNotification, Panel, PanelFormDialog } from '@txstate-mws/carbon-svelte'
   import { Tooltip } from 'carbon-components-svelte'
   import { uiRegistry } from '../../local';
   import { Button } from 'carbon-components-svelte'
@@ -139,6 +139,10 @@
   }
 
   async function advanceWorkflow () {
+    if (!application.nextWorkflowStage?.blocking && application.phase === 'READY_FOR_WORKFLOW') {
+      const confirm = await confirmationStore.confirm('Confirm complete review')
+      if (!confirm) return
+    }
     loading = true
     const response = await api.advanceWorkflow(application.id)
     await invalidateAll()
@@ -193,6 +197,7 @@
     await refreshReviewData()
   }
 
+  console.log(application)
 </script>
 {#each sections as section (section.title)}
   <Panel title={section.title} expandable expanded>
@@ -275,12 +280,22 @@
     {:else}
       No questions in this section.
     {/if}
-    {#if !section.requirements.every(r => r.type === enumRequirementType.PREQUAL) && (application.actions?.advanceWorkflow || application.actions?.reverseWorkflow)}
+    {#if !section.requirements.every(r => r.type === 'PREQUAL')}
+    <!-- {#if !section.requirements.every(r => r.type === enumRequirementType.PREQUAL) && (application.actions?.advanceWorkflow || application.actions?.reverseWorkflow)} -->
       <div class="flex justify-end mt-8">
+        <!-- {#if application.actions?.advanceWorkflow && (application.workflowStage?.key ? application.workflowStage?.key === section.requirements[0]?.workflowStage?.key : section.title === latestWorkflow)} -->
         {#if application.actions?.advanceWorkflow && (application.workflowStage?.key ? application.workflowStage?.key === section.requirements[0]?.workflowStage?.key : section.title === latestWorkflow)}
-          <Button size="small" on:click={advanceWorkflow}>{'Send to ' + (application.nextWorkflowStage?.title ?? (!application.workflowStage?.blocking ? 'Complete' : 'Review Complete'))}</Button>
-        {:else if application.actions?.reverseWorkflow && section.requirements.every(r => r.status === enumRequirementStatus.MET || r.status === enumRequirementStatus.NOT_APPLICABLE) && application.previousWorkflowStage?.key === section.requirements[0]?.workflowStage?.key}
-          <Button kind='secondary' size="small" on:click={reverseWorkflow}>Edit answers</Button>
+          <Button size="small" on:click={advanceWorkflow}>{'Send to ' + (application.nextWorkflowStage?.blocking ? application.nextWorkflowStage?.title : (!application.workflowStage?.blocking ? 'Complete' : 'Review Complete'))}</Button>
+        <!-- {:else if application.actions?.reverseWorkflow && section.requirements.every(r => r.status === enumRequirementStatus.MET || r.status === enumRequirementStatus.NOT_APPLICABLE) && application.previousWorkflowStage?.key === section.requirements[0]?.workflowStage?.key} -->
+        {:else if section.requirements.every(r => (r.status === enumRequirementStatus.MET || r.status === enumRequirementStatus.NOT_APPLICABLE) && r.type !== 'WORKFLOW' || r.workflowStage?.blocking)}
+          <Button
+            kind='secondary'
+            size="small"
+            on:click={reverseWorkflow}
+            disabled={!(application.actions?.reverseWorkflow && application.previousWorkflowStage?.key === section.requirements[0]?.workflowStage?.key)}
+          >
+            Edit answer
+          </Button>
         {/if}
       </div>
     {/if}
