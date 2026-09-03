@@ -78,8 +78,8 @@ export class ApplicationService extends AuthService<Application> {
     // the rest of this only applies to the
     // blocking workflow.
     if (application.appRequestPhase === AppRequestPhase.WORKFLOW_NONBLOCKING) return null
-    const stages = await this.svc(ProgramService).findWorkflowStagesByPeriodIdAndProgramKey(application.periodId, application.programKey, { hasEnabledRequirements: true, blocking: true })
-    if (!application.workflowStageKey) return stages[0]
+    const stages = await this.svc(ProgramService).findWorkflowStagesByPeriodIdAndProgramKey(application.periodId, application.programKey, { hasEnabledRequirements: true })
+    if (!application.workflowStageKey) return stages.find(s => s.blocking) ?? stages[0]
     const currentIndex = stages.findIndex(s => s.key === application.workflowStageKey)
     if (currentIndex === -1 || currentIndex + 1 >= stages.length) return null
     return stages[currentIndex + 1]

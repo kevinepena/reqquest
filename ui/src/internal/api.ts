@@ -926,7 +926,8 @@ class API extends APIBase {
           },
           nextWorkflowStage: {
             key: true,
-            title: true
+            title: true,
+            blocking: true
           },
           previousWorkflowStage: {
             key: true,
